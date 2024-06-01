@@ -1,0 +1,17 @@
+.gridContainer {
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.grid {
+	display: grid;
+	grid-template-columns: repeat(7, 60px);
+	grid-auto-rows: 60px;
+	gap: 5px;
+}
+
+.day {
+	border: 1px solid black;
+}
