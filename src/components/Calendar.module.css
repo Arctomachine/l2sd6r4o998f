@@ -14,4 +14,19 @@
 
 .day {
 	border: 1px solid black;
+	cursor: pointer;
+}
+
+.day.label {
+	cursor: default;
+}
+
+.day.off {
+	background-color: darkred;
+	color: white;
+}
+
+.day.null {
+	background-color: lightgray;
+	cursor: not-allowed;
 }

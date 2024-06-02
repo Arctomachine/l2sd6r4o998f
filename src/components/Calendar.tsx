@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getDayOffData } from '../data/IsDayOffApi.ts'
 import styles from './Calendar.module.css'
 
 type DayObject = {
@@ -99,53 +100,91 @@ function Calendar() {
 	])
 	const monthDays = getMonthDays(currentYearMonth[0], currentYearMonth[1])
 
+	const [calendarIsReady, setCalendarIsReady] = useState(false)
+	const [offDaysArray, setOffDaysArray] = useState<string[]>([])
+
+	function onMonthMove(up: boolean) {
+		setCalendarIsReady(false)
+		setCurrentYearMonth(moveMonth(currentYearMonth, up))
+	}
+
+	useEffect(() => {
+		getDayOffData(currentYearMonth[0], currentYearMonth[1])
+			.then((res) => {
+				setOffDaysArray(res)
+			})
+			.catch((err) => {
+				alert(err)
+			})
+			.finally(() => {
+				setCalendarIsReady(true)
+			})
+	}, [currentYearMonth[0], currentYearMonth[1]])
+
 	return (
 		<>
 			<h1>
 				{Intl.DateTimeFormat(undefined, {
 					year: 'numeric',
 					month: 'long',
-				}).format(new Date(currentYearMonth[0], currentYearMonth[1]))}
+				}).format(new Date(currentYearMonth[0], currentYearMonth[1] - 1))}
 			</h1>
 			<button
 				type="button"
-				onClick={() =>
-					setCurrentYearMonth((prevState) => moveMonth(prevState, false))
-				}
+				onClick={() => onMonthMove(false)}
+				disabled={!calendarIsReady}
 			>
 				Назад
 			</button>
 			<button
 				type="button"
-				onClick={() =>
-					setCurrentYearMonth((prevState) => moveMonth(prevState, true))
-				}
+				onClick={() => onMonthMove(true)}
+				disabled={!calendarIsReady}
 			>
 				Вперед
 			</button>
 			<section className={styles.gridContainer}>
 				<div className={styles.grid}>
 					{getWeekDays().map((day) => (
-						<div key={day} className={styles.day}>
+						<div key={day} className={[styles.day, styles.label].join(' ')}>
 							{day}
 						</div>
 					))}
 				</div>
 				<div className={styles.grid}>
-					{monthDays.map((day) => (
-						<Day key={day.id} day={day.day} />
-					))}
+					{calendarIsReady
+						? monthDays.map((day) => (
+								<Day
+									key={day.id}
+									day={day.day}
+									isOff={
+										typeof day.day === 'number' &&
+										offDaysArray[day.day - 1] === '1'
+									}
+								/>
+							))
+						: null}
 				</div>
 			</section>
 		</>
 	)
 }
 
-function Day(props: { day: DayObject['day'] }) {
-	if (props.day === null) {
-		return <div className={styles.day} />
-	}
-	return <div className={styles.day}>{props.day}</div>
+function Day(props: {
+	day: DayObject['day']
+	isOff: boolean
+}) {
+	return (
+		<div
+			className={[
+				styles.day,
+				props.isOff && styles.off,
+				props.day === null && styles.null,
+			].join(' ')}
+		>
+			{props.day}
+		</div>
+	)
 }
 
 export default Calendar
