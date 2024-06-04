@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getDayOffData } from '../data/IsDayOffApi.ts'
 import styles from './Calendar.module.css'
+import ModalWrapper from './ModalWrapper.tsx'
 
 type DayObject = {
 	id: string
@@ -161,6 +162,8 @@ function Calendar() {
 										typeof day.day === 'number' &&
 										offDaysArray[day.day - 1] === '1'
 									}
+									year={currentYearMonth[0]}
+									month={currentYearMonth[1]}
 								/>
 							))
 						: null}
@@ -173,17 +176,46 @@ function Calendar() {
 function Day(props: {
 	day: DayObject['day']
 	isOff: boolean
+	year: number
+	month: number
 }) {
+	const [isOpen, setIsOpen] = useState(false)
+
 	return (
-		<div
-			className={[
-				styles.day,
-				props.isOff && styles.off,
-				props.day === null && styles.null,
-			].join(' ')}
-		>
-			{props.day}
-		</div>
+		<>
+			<div
+				className={[
+					styles.day,
+					props.isOff && styles.off,
+					props.day === null && styles.null,
+				].join(' ')}
+			>
+				{props.day === null ? null : (
+					<button
+						type="button"
+						aria-label={Intl.DateTimeFormat(undefined, {
+							year: 'numeric',
+							month: 'long',
+							day: 'numeric',
+						}).format(new Date(props.year, props.month - 1, props.day))}
+						onClick={() => setIsOpen(true)}
+					>
+						{props.day}
+					</button>
+				)}
+			</div>
+			{props.day === null ? null : (
+				<ModalWrapper
+					open={isOpen}
+					onClose={() => setIsOpen(false)}
+					header={Intl.DateTimeFormat(undefined, {
+						year: 'numeric',
+						month: 'long',
+						day: 'numeric',
+					}).format(new Date(props.year, props.month - 1, props.day))}
+				></ModalWrapper>
+			)}
+		</>
 	)
 }
 
