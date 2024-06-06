@@ -32,8 +32,9 @@ function ModalWrapper(props: {
 	}, [props.open, props.onClose])
 
 	return (
-		<dialog ref={dialogRef}>
+		<dialog ref={dialogRef} className={styles.dialog}>
 			<section className={styles.container}>
+				<div className={styles.content}>{props.children}</div>
 				<header className={styles.header}>
 					{props.header && <h2>{props.header}</h2>}
 					<button
@@ -44,7 +45,6 @@ function ModalWrapper(props: {
 						╳
 					</button>
 				</header>
-				<div>{props.children}</div>
 			</section>
 		</dialog>
 	)

@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { getDayOffData } from '../data/IsDayOffApi.ts'
+import { getTodosByDay } from '../data/TodoListApi.ts'
+import AddTodo from './AddTodo.tsx'
 import styles from './Calendar.module.css'
 import ModalWrapper from './ModalWrapper.tsx'
+import TodoList from './TodoList.tsx'
 
 type DayObject = {
 	id: string
@@ -181,6 +184,19 @@ function Day(props: {
 }) {
 	const [isOpen, setIsOpen] = useState(false)
 
+	// для работы с реальным сервером лучше загружать весь список в родительском компоненте
+	const [dayTodos, setDayTodos] = useState(
+		props.day ? getTodosByDay(props.year, props.month, props.day) : null,
+	)
+
+	function updateDayTodos() {
+		const dayTodos = props.day
+			? getTodosByDay(props.year, props.month, props.day)
+			: null
+
+		setDayTodos(dayTodos)
+	}
+
 	return (
 		<>
 			<div
@@ -191,17 +207,27 @@ function Day(props: {
 				].join(' ')}
 			>
 				{props.day === null ? null : (
-					<button
-						type="button"
-						aria-label={Intl.DateTimeFormat(undefined, {
-							year: 'numeric',
-							month: 'long',
-							day: 'numeric',
-						}).format(new Date(props.year, props.month - 1, props.day))}
-						onClick={() => setIsOpen(true)}
-					>
-						{props.day}
-					</button>
+					<>
+						<button
+							type="button"
+							aria-label={Intl.DateTimeFormat(undefined, {
+								year: 'numeric',
+								month: 'long',
+								day: 'numeric',
+							}).format(new Date(props.year, props.month - 1, props.day))}
+							onClick={() => setIsOpen(true)}
+						>
+							{props.day}
+						</button>
+						<div className={styles.info}>
+							{dayTodos ? (
+								<>
+									<div>☑{dayTodos.todos.filter((t) => t.isDone).length}</div>
+									<div>☐{dayTodos.todos.filter((t) => !t.isDone).length}</div>
+								</>
+							) : null}
+						</div>
+					</>
 				)}
 			</div>
 			{props.day === null ? null : (
@@ -213,7 +239,19 @@ function Day(props: {
 						month: 'long',
 						day: 'numeric',
 					}).format(new Date(props.year, props.month - 1, props.day))}
-				></ModalWrapper>
+				>
+					<>
+						<AddTodo
+							year={props.year}
+							month={props.month}
+							day={props.day}
+							onReady={updateDayTodos}
+						/>
+						{dayTodos ? (
+							<TodoList list={dayTodos.todos} onChange={updateDayTodos} />
+						) : null}
+					</>
+				</ModalWrapper>
 			)}
 		</>
 	)
