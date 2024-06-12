@@ -1,0 +1,12 @@
+# https://dev.to/ysmnikhil/how-to-build-with-react-or-vue-with-vite-and-docker-1a3l
+
+version: "3.4"
+services:
+  vite:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vite_docker
+    ports:
+      - "4173:4173"
+    tty: true
