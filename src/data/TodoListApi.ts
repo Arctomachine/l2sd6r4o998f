@@ -1,7 +1,10 @@
+import type { Profile } from './ProfilesApi.ts'
+
 export type Todo = {
 	id: string
 	title: string
 	isDone: boolean
+	profileId?: Profile['id']
 }
 
 type Day = {
@@ -14,12 +17,17 @@ export function addNewTodo(
 	month: number,
 	day: number,
 	title: string,
+	profileId?: Profile['id'],
 ) {
-	const id = Math.random().toString(36).substring(2, 15)
+	const id = Date.now().toString(36)
 	const todo: Todo = {
 		id,
 		title,
 		isDone: false,
+	}
+
+	if (profileId) {
+		todo.profileId = profileId
 	}
 
 	const existingTodos = getTodosByDay(year, month, day)
@@ -97,6 +105,11 @@ export function deleteTodo(id: string) {
 			if (todoIndex !== -1) {
 				day.todos.splice(todoIndex, 1)
 				localStorage.setItem(todoKey, JSON.stringify(day))
+
+				if (day.todos.length === 0) {
+					localStorage.removeItem(todoKey)
+				}
+
 				return
 			}
 		}

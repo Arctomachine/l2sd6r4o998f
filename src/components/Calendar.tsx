@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { getDayOffData } from '../data/IsDayOffApi.ts'
+import { type Profile, getLastUsedProfile } from '../data/ProfilesApi.ts'
 import { getTodosByDay } from '../data/TodoListApi.ts'
 import AddTodo from './AddTodo.tsx'
 import styles from './Calendar.module.css'
 import ModalWrapper from './ModalWrapper.tsx'
+import ProfilePicker from './ProfilePicker.tsx'
 import TodoList from './TodoList.tsx'
 
 type DayObject = {
@@ -107,6 +109,8 @@ function Calendar() {
 	const [calendarIsReady, setCalendarIsReady] = useState(false)
 	const [offDaysArray, setOffDaysArray] = useState<string[]>([])
 
+	const [currentProfile, setCurrentProfile] = useState(getLastUsedProfile())
+
 	function onMonthMove(up: boolean) {
 		setCalendarIsReady(false)
 		setCurrentYearMonth(moveMonth(currentYearMonth, up))
@@ -147,6 +151,10 @@ function Calendar() {
 			>
 				Вперед
 			</button>
+			<ProfilePicker
+				currentProfileId={currentProfile?.id || null}
+				onProfileChange={setCurrentProfile}
+			/>
 			<section className={styles.gridContainer}>
 				<div className={styles.grid}>
 					{getWeekDays().map((day) => (
@@ -167,6 +175,7 @@ function Calendar() {
 									}
 									year={currentYearMonth[0]}
 									month={currentYearMonth[1]}
+									profile={currentProfile?.id}
 								/>
 							))
 						: null}
@@ -181,6 +190,7 @@ function Day(props: {
 	isOff: boolean
 	year: number
 	month: number
+	profile?: Profile['id']
 }) {
 	const [isOpen, setIsOpen] = useState(false)
 
@@ -196,6 +206,10 @@ function Day(props: {
 
 		setDayTodos(dayTodos)
 	}
+
+	const todosByProfile = dayTodos
+		? dayTodos.todos.filter((t) => t.profileId === props.profile)
+		: null
 
 	return (
 		<>
@@ -220,10 +234,10 @@ function Day(props: {
 							{props.day}
 						</button>
 						<div className={styles.info}>
-							{dayTodos ? (
+							{todosByProfile && todosByProfile.length > 0 ? (
 								<>
-									<div>☑{dayTodos.todos.filter((t) => t.isDone).length}</div>
-									<div>☐{dayTodos.todos.filter((t) => !t.isDone).length}</div>
+									<div>☑{todosByProfile.filter((t) => t.isDone).length}</div>
+									<div>☐{todosByProfile.filter((t) => !t.isDone).length}</div>
 								</>
 							) : null}
 						</div>
@@ -246,9 +260,10 @@ function Day(props: {
 							month={props.month}
 							day={props.day}
 							onReady={updateDayTodos}
+							profileId={props.profile}
 						/>
-						{dayTodos ? (
-							<TodoList list={dayTodos.todos} onChange={updateDayTodos} />
+						{todosByProfile ? (
+							<TodoList list={todosByProfile} onChange={updateDayTodos} />
 						) : null}
 					</>
 				</ModalWrapper>

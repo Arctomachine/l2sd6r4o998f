@@ -1,10 +1,12 @@
 import { type FormEvent, useState } from 'react'
+import type { Profile } from '../data/ProfilesApi.ts'
 import { addNewTodo } from '../data/TodoListApi.ts'
 
 function AddTodo(props: {
 	year: number
 	month: number
 	day: number
+	profileId?: Profile['id']
 	onReady: () => void
 }) {
 	const [inputMode, setInputMode] = useState(false)
@@ -23,7 +25,7 @@ function AddTodo(props: {
 			return
 		}
 
-		addNewTodo(props.year, props.month, props.day, title)
+		addNewTodo(props.year, props.month, props.day, title, props.profileId)
 		setTitle('')
 		props.onReady()
 	}
